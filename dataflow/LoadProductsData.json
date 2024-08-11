@@ -1,0 +1,70 @@
+{
+	"name": "LoadProductsData",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Products_Csv",
+						"type": "DatasetReference"
+					},
+					"name": "ProductsText"
+				},
+				{
+					"dataset": {
+						"referenceName": "DimProduct",
+						"type": "DatasetReference"
+					},
+					"name": "ProductTable"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "MatchedProductsx"
+				},
+				{
+					"name": "SetLoadAction"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sale_id as integer,",
+				"          product_id as integer,",
+				"          product_name as string,",
+				"          quantity as string,",
+				"          price as decimal(10,0),",
+				"          total_amount as decimal(10,0),",
+				"          sale_date as timestamp,",
+				"          region as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> ProductsText",
+				"source(output(",
+				"          sale_id as integer,",
+				"          product_id as integer,",
+				"          product_name as string,",
+				"          quantity as integer,",
+				"          price as decimal(18,2),",
+				"          total_amount as decimal(18,2),",
+				"          sale_date as timestamp,",
+				"          region as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     staged: true) ~> ProductTable",
+				"ProductsText, ProductTable lookup(ProductsText@product_id == ProductTable@product_id,",
+				"     multiple: false,",
+				"     pickup: 'last',",
+				"     asc(ProductTable@product_id, true),",
+				"     broadcast: 'auto')~> MatchedProductsx",
+				"MatchedProductsx alterRow(insertIf(isNull(product_id)),",
+				"     upsertIf(not(isNull(product_id)))) ~> SetLoadAction"
+			]
+		}
+	}
+}
