@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "CREATE TABLE [dbo].[SalesDataStaging]\n(\n    [sale_id] INT,\n    [product_id] INT,\n    [product_name] NVARCHAR(255),\n    [quantity] INT,\n    [price] DECIMAL(18, 2),\n    [total_amount] DECIMAL(18, 2),\n    [sale_date] DATETIME,\n    [region] NVARCHAR(100)\n)\nWITH\n(\n    DISTRIBUTION = ROUND_ROBIN,\n    HEAP\n);\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlaic4ypz",
+				"poolName": "sqlaic4ypz"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
