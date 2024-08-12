@@ -1,5 +1,5 @@
 {
-	"name": "NotebookJson",
+	"name": "NotebookParqet",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "11517ff9-61c3-48f1-ae5a-700cc9b8cd86"
+				"spark.autotune.trackingId": "d45c0105-21de-4870-b5b7-c92602ece77c"
 			}
 		},
 		"metadata": {
@@ -57,8 +57,8 @@
 				},
 				"source": [
 					"%%pyspark\r\n",
-					"json_df = spark.read.load('abfss://files@datalakeaic4ypz.dfs.core.windows.net/sales_data_2021_Q1_February.json', format='json')\r\n",
-					"json_df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
+					"parquet_df = spark.read.load('abfss://files@datalakeaic4ypz.dfs.core.windows.net/sales_data_2021_Q1_February.parquet', format='parquet')\r\n",
+					"parquet_df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
 				],
 				"execution_count": null
 			},
@@ -77,10 +77,10 @@
 				},
 				"source": [
 					"# Display schema and first few rows\r\n",
-					"json_df.printSchema()\r\n",
-					"json_df.show(5)"
+					"parquet_df.printSchema()\r\n",
+					"parquet_df.show(5)"
 				],
-				"execution_count": 53
+				"execution_count": 41
 			},
 			{
 				"cell_type": "code",
@@ -99,11 +99,11 @@
 					"from pyspark.sql.functions import col, sum\r\n",
 					"\r\n",
 					"# Count null values for each column\r\n",
-					"null_counts = json_df.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in json_df.columns])\r\n",
+					"null_counts = parquet_df.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in parquet_df.columns])\r\n",
 					"null_counts.show()\r\n",
 					""
 				],
-				"execution_count": 54
+				"execution_count": 42
 			},
 			{
 				"cell_type": "code",
@@ -120,17 +120,17 @@
 				},
 				"source": [
 					"# Count total rows\r\n",
-					"total_rows = json_df.count()\r\n",
+					"total_rows = parquet_df.count()\r\n",
 					"\r\n",
 					"# Count rows after dropping duplicates\r\n",
-					"distinct_rows = json_df.dropDuplicates().count()\r\n",
+					"distinct_rows = parquet_df.dropDuplicates().count()\r\n",
 					"\r\n",
 					"# Calculate number of duplicate rows\r\n",
 					"duplicates_count = total_rows - distinct_rows\r\n",
 					"print(f\"Number of duplicate rows: {duplicates_count}\")\r\n",
 					""
 				],
-				"execution_count": 55
+				"execution_count": 43
 			},
 			{
 				"cell_type": "code",
@@ -147,12 +147,12 @@
 				},
 				"source": [
 					"# Drop rows with any null values\r\n",
-					"json_df_cleaned = json_df.dropna()\r\n",
+					"parquet_df_cleaned = parquet_df.dropna()\r\n",
 					"\r\n",
 					"# Remove duplicate rows\r\n",
-					"json_df_cleaned = json_df_cleaned.dropDuplicates()"
+					"parquet_df_cleaned = parquet_df_cleaned.dropDuplicates()"
 				],
-				"execution_count": 56
+				"execution_count": 44
 			},
 			{
 				"cell_type": "code",
@@ -169,20 +169,20 @@
 				},
 				"source": [
 					"# Count null values for each column\r\n",
-					"null_counts = json_df_cleaned.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in json_df_cleaned.columns])\r\n",
+					"null_counts = parquet_df_cleaned.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in parquet_df_cleaned.columns])\r\n",
 					"null_counts.show()\r\n",
 					"# Count total rows\r\n",
-					"total_rows = json_df_cleaned.count()\r\n",
+					"total_rows = parquet_df_cleaned.count()\r\n",
 					"\r\n",
 					"# Count rows after dropping duplicates\r\n",
-					"distinct_rows = json_df_cleaned.dropDuplicates().count()\r\n",
+					"distinct_rows = parquet_df_cleaned.dropDuplicates().count()\r\n",
 					"\r\n",
 					"# Calculate number of duplicate rows\r\n",
 					"duplicates_count = total_rows - distinct_rows\r\n",
 					"print(f\"Number of duplicate rows: {duplicates_count}\")\r\n",
 					""
 				],
-				"execution_count": 57
+				"execution_count": 45
 			},
 			{
 				"cell_type": "code",
@@ -202,14 +202,14 @@
 					"from pyspark.sql.functions import to_date\r\n",
 					"\r\n",
 					"# Cast data typeof quantity\r\n",
-					"json_df_transformed = json_df_cleaned.withColumn(\"quantity\", col(\"quantity\").cast(\"int\"))\r\n",
+					"parquet_df_transformed = parquet_df_cleaned.withColumn(\"quantity\", col(\"quantity\").cast(\"int\"))\r\n",
 					"# Convert sale_date from string to date\r\n",
-					"json_df_transformed = json_df_transformed.withColumn(\"sale_date\", to_date(col(\"sale_date\"), \"yyyy-MM-dd\"))\r\n",
+					"parquet_df_transformed = parquet_df_transformed.withColumn(\"sale_date\", to_date(col(\"sale_date\"), \"yyyy-MM-dd\"))\r\n",
 					"\r\n",
 					"# Verify transformation\r\n",
-					"json_df_transformed.printSchema()"
+					"parquet_df_transformed.printSchema()"
 				],
-				"execution_count": 58
+				"execution_count": 48
 			},
 			{
 				"cell_type": "code",
@@ -229,14 +229,14 @@
 					"from pyspark.sql.functions import sum\r\n",
 					"\r\n",
 					"# Aggregate to find total sales amount by region\r\n",
-					"json_sales_by_region = json_df_transformed.groupBy(\"region\").agg(sum(\"total_amount\").alias(\"total_sales_amount\"))\r\n",
+					"parquet_sales_by_region = parquet_df_transformed.groupBy(\"region\").agg(sum(\"total_amount\").alias(\"total_sales_amount\"))\r\n",
 					"\r\n",
 					"# Aggregate to find total quantity sold by product\r\n",
-					"json_quantity_by_product = json_df_transformed.groupBy(\"product_id\", \"product_name\").agg(sum(\"quantity\").alias(\"total_quantity_sold\"))\r\n",
-					"display(json_sales_by_region.limit(5))\r\n",
-					"display(json_quantity_by_product.limit(5))"
+					"parquet_quantity_by_product = parquet_df_transformed.groupBy(\"product_id\", \"product_name\").agg(sum(\"quantity\").alias(\"total_quantity_sold\"))\r\n",
+					"display(parquet_sales_by_region.limit(5))\r\n",
+					"display(parquet_quantity_by_product.limit(5))"
 				],
-				"execution_count": 59
+				"execution_count": 50
 			}
 		]
 	}
