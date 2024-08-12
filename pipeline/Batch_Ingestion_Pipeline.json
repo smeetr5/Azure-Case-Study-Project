@@ -20,6 +20,8 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
+							"wildcardFolderPath": "sales_data/poscsv/",
+							"wildcardFileName": "sales_data_*.csv",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -30,10 +32,7 @@
 						"type": "SqlPoolSink",
 						"allowCopyCommand": true
 					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator"
-					}
+					"enableStaging": false
 				},
 				"inputs": [
 					{
