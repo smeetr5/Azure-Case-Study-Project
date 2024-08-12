@@ -1,5 +1,5 @@
 {
-	"name": "NotebookCSV",
+	"name": "NotebookJson",
 	"properties": {
 		"nbformat": 4,
 		"nbformat_minor": 2,
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "2bf91ff0-056c-4fa4-b663-4dc2a80bcd82"
+				"spark.autotune.trackingId": "a8f2c410-812b-4a3a-9497-5dac5f8f412b"
 			}
 		},
 		"metadata": {
@@ -53,16 +53,12 @@
 				"metadata": {
 					"microsoft": {
 						"language": "python"
-					},
-					"collapsed": false
+					}
 				},
 				"source": [
 					"%%pyspark\r\n",
-					"csv_df = spark.read.load('abfss://files@datalakeaic4ypz.dfs.core.windows.net/sales_data_2021_Q1_February.csv', format='csv'\r\n",
-					"## If header exists uncomment line below\r\n",
-					", header=True\r\n",
-					")\r\n",
-					"csv_df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
+					"json_df = spark.read.load('abfss://files@datalakeaic4ypz.dfs.core.windows.net/sales_data_2021_Q1_February.json', format='json')\r\n",
+					"json_df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
 				],
 				"execution_count": null
 			},
@@ -81,10 +77,10 @@
 				},
 				"source": [
 					"# Display schema and first few rows\r\n",
-					"csv_df.printSchema()\r\n",
-					"csv_df.show(10)"
+					"json_df.printSchema()\r\n",
+					"json_df.show(5)"
 				],
-				"execution_count": null
+				"execution_count": 53
 			},
 			{
 				"cell_type": "code",
@@ -100,84 +96,14 @@
 					}
 				},
 				"source": [
-					"# Counting null values for each column\r\n",
 					"from pyspark.sql.functions import col, sum\r\n",
 					"\r\n",
-					"\r\n",
-					"null_counts = csv_df.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in csv_df.columns])\r\n",
+					"# Count null values for each column\r\n",
+					"null_counts = json_df.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in json_df.columns])\r\n",
 					"null_counts.show()\r\n",
 					""
 				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# Counting total rows\r\n",
-					"total_rows = csv_df.count()\r\n",
-					"\r\n",
-					"# Counting rows after dropping duplicates\r\n",
-					"distinct_rows = csv_df.dropDuplicates().count()\r\n",
-					"\r\n",
-					"# Calculate no. of duplicate rows\r\n",
-					"duplicates_count = total_rows - distinct_rows\r\n",
-					"print(f\"No. of duplicate rows: {duplicates_count}\")\r\n",
-					""
-				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# Dropping rows with  null values\r\n",
-					"csv_df_cleaned = csv_df.dropna()\r\n",
-					"\r\n",
-					"# Removing duplicate rows\r\n",
-					"csv_df_cleaned = csv_df_cleaned.dropDuplicates()"
-				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"# Counting null values for each column after null value treatment\r\n",
-					"null_counts = csv_df_cleaned.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in csv_df_cleaned.columns])\r\n",
-					"null_counts.show()"
-				],
-				"execution_count": null
+				"execution_count": 54
 			},
 			{
 				"cell_type": "code",
@@ -194,17 +120,69 @@
 				},
 				"source": [
 					"# Count total rows\r\n",
-					"total_rows = csv_df_cleaned.count()\r\n",
+					"total_rows = json_df.count()\r\n",
 					"\r\n",
 					"# Count rows after dropping duplicates\r\n",
-					"distinct_rows = csv_df_cleaned.dropDuplicates().count()\r\n",
+					"distinct_rows = json_df.dropDuplicates().count()\r\n",
 					"\r\n",
 					"# Calculate number of duplicate rows\r\n",
 					"duplicates_count = total_rows - distinct_rows\r\n",
 					"print(f\"Number of duplicate rows: {duplicates_count}\")\r\n",
 					""
 				],
-				"execution_count": null
+				"execution_count": 55
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Drop rows with any null values\r\n",
+					"json_df_cleaned = json_df.dropna()\r\n",
+					"\r\n",
+					"# Remove duplicate rows\r\n",
+					"json_df_cleaned = json_df_cleaned.dropDuplicates()"
+				],
+				"execution_count": 56
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Count null values for each column\r\n",
+					"null_counts = json_df_cleaned.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in json_df_cleaned.columns])\r\n",
+					"null_counts.show()\r\n",
+					"# Count total rows\r\n",
+					"total_rows = json_df_cleaned.count()\r\n",
+					"\r\n",
+					"# Count rows after dropping duplicates\r\n",
+					"distinct_rows = json_df_cleaned.dropDuplicates().count()\r\n",
+					"\r\n",
+					"# Calculate number of duplicate rows\r\n",
+					"duplicates_count = total_rows - distinct_rows\r\n",
+					"print(f\"Number of duplicate rows: {duplicates_count}\")\r\n",
+					""
+				],
+				"execution_count": 57
 			},
 			{
 				"cell_type": "code",
@@ -221,40 +199,17 @@
 				},
 				"source": [
 					"from pyspark.sql.functions import col\r\n",
-					"\r\n",
-					"# Cast data types\r\n",
-					"csv_df_transformed = csv_df_cleaned.withColumn(\"quantity\", col(\"quantity\").cast(\"int\")) \\\r\n",
-					"                                    .withColumn(\"price\", col(\"price\").cast(\"double\")) \\\r\n",
-					"                                    .withColumn(\"total_amount\", col(\"total_amount\").cast(\"double\"))\r\n",
-					"csv_df_transformed.printSchema()\r\n",
-					"                                "
-				],
-				"execution_count": null
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
-					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
 					"from pyspark.sql.functions import to_date\r\n",
 					"\r\n",
+					"# Cast data typeof quantity\r\n",
+					"json_df_transformed = json_df_cleaned.withColumn(\"quantity\", col(\"quantity\").cast(\"int\"))\r\n",
 					"# Convert sale_date from string to date\r\n",
-					"csv_df_transformed = csv_df.withColumn(\"sale_date\", to_date(col(\"sale_date\"), \"yyyy-MM-dd\"))\r\n",
+					"json_df_transformed = json_df_transformed.withColumn(\"sale_date\", to_date(col(\"sale_date\"), \"yyyy-MM-dd\"))\r\n",
 					"\r\n",
 					"# Verify transformation\r\n",
-					"csv_df_transformed.printSchema()\r\n",
-					""
+					"json_df_transformed.printSchema()"
 				],
-				"execution_count": null
+				"execution_count": 58
 			},
 			{
 				"cell_type": "code",
@@ -274,14 +229,14 @@
 					"from pyspark.sql.functions import sum\r\n",
 					"\r\n",
 					"# Aggregate to find total sales amount by region\r\n",
-					"csv_sales_by_region = csv_df_transformed.groupBy(\"region\").agg(sum(\"total_amount\").alias(\"total_sales_amount\"))\r\n",
+					"json_sales_by_region = json_df_transformed.groupBy(\"region\").agg(sum(\"total_amount\").alias(\"total_sales_amount\"))\r\n",
 					"\r\n",
 					"# Aggregate to find total quantity sold by product\r\n",
-					"csv_quantity_by_product = csv_df_transformed.groupBy(\"product_id\", \"product_name\").agg(sum(\"quantity\").alias(\"total_quantity_sold\"))\r\n",
-					"display(csv_sales_by_region.limit(5))\r\n",
-					"display(csv_quantity_by_product.limit(5))"
+					"json_quantity_by_product = json_df_transformed.groupBy(\"product_id\", \"product_name\").agg(sum(\"quantity\").alias(\"total_quantity_sold\"))\r\n",
+					"display(json_sales_by_region.limit(5))\r\n",
+					"display(json_quantity_by_product.limit(5))"
 				],
-				"execution_count": null
+				"execution_count": 59
 			}
 		]
 	}
