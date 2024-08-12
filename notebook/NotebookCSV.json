@@ -1,0 +1,288 @@
+{
+	"name": "NotebookCSV",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "sparkaic4ypz",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "56g",
+			"driverCores": 8,
+			"executorMemory": "56g",
+			"executorCores": 8,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "215ba0c5-2329-4b43-b4d8-d3ff4fc95f9a"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/a2cc91cf-591e-48fd-90b3-3328027b936e/resourceGroups/dp203-aic4ypz/providers/Microsoft.Synapse/workspaces/synapseaic4ypz/bigDataPools/sparkaic4ypz",
+				"name": "sparkaic4ypz",
+				"type": "Spark",
+				"endpoint": "https://synapseaic4ypz.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparkaic4ypz",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.4",
+				"nodeCount": 10,
+				"cores": 8,
+				"memory": 56,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"microsoft": {
+						"language": "python"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%pyspark\r\n",
+					"csv_df = spark.read.load('abfss://files@datalakeaic4ypz.dfs.core.windows.net/sales_data_2021_Q1_February.csv', format='csv'\r\n",
+					"## If header exists uncomment line below\r\n",
+					", header=True\r\n",
+					")\r\n",
+					"csv_df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Display schema and first few rows\r\n",
+					"csv_df.printSchema()\r\n",
+					"csv_df.show(10)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Counting null values for each column\r\n",
+					"from pyspark.sql.functions import col, sum\r\n",
+					"\r\n",
+					"\r\n",
+					"null_counts = csv_df.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in csv_df.columns])\r\n",
+					"null_counts.show()\r\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Counting total rows\r\n",
+					"total_rows = csv_df.count()\r\n",
+					"\r\n",
+					"# Counting rows after dropping duplicates\r\n",
+					"distinct_rows = csv_df.dropDuplicates().count()\r\n",
+					"\r\n",
+					"# Calculate no. of duplicate rows\r\n",
+					"duplicates_count = total_rows - distinct_rows\r\n",
+					"print(f\"No. of duplicate rows: {duplicates_count}\")\r\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Dropping rows with  null values\r\n",
+					"csv_df_cleaned = csv_df.dropna()\r\n",
+					"\r\n",
+					"# Removing duplicate rows\r\n",
+					"csv_df_cleaned = csv_df_cleaned.dropDuplicates()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Counting null values for each column after null value treatment\r\n",
+					"null_counts = csv_df_cleaned.select([sum(col(c).isNull().cast(\"int\")).alias(c) for c in csv_df_cleaned.columns])\r\n",
+					"null_counts.show()"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"# Count total rows\r\n",
+					"total_rows = csv_df_cleaned.count()\r\n",
+					"\r\n",
+					"# Count rows after dropping duplicates\r\n",
+					"distinct_rows = csv_df_cleaned.dropDuplicates().count()\r\n",
+					"\r\n",
+					"# Calculate number of duplicate rows\r\n",
+					"duplicates_count = total_rows - distinct_rows\r\n",
+					"print(f\"Number of duplicate rows: {duplicates_count}\")\r\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql.functions import col\r\n",
+					"\r\n",
+					"# Cast data types\r\n",
+					"csv_df_transformed = csv_df_cleaned.withColumn(\"quantity\", col(\"quantity\").cast(\"int\")) \\\r\n",
+					"                                    .withColumn(\"price\", col(\"price\").cast(\"double\")) \\\r\n",
+					"                                    .withColumn(\"total_amount\", col(\"total_amount\").cast(\"double\"))\r\n",
+					"csv_df_transformed.printSchema()\r\n",
+					"                                "
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql.functions import to_date\r\n",
+					"\r\n",
+					"# Convert sale_date from string to date\r\n",
+					"csv_df_transformed = csv_df.withColumn(\"sale_date\", to_date(col(\"sale_date\"), \"yyyy-MM-dd\"))\r\n",
+					"\r\n",
+					"# Verify transformation\r\n",
+					"csv_df_transformed.printSchema()\r\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from pyspark.sql.functions import sum\r\n",
+					"\r\n",
+					"# Aggregate to find total sales amount by region\r\n",
+					"csv_sales_by_region = csv_df_transformed.groupBy(\"region\").agg(sum(\"total_amount\").alias(\"total_sales_amount\"))\r\n",
+					"\r\n",
+					"# Aggregate to find total quantity sold by product\r\n",
+					"csv_quantity_by_product = csv_df_transformed.groupBy(\"product_id\", \"product_name\").agg(sum(\"quantity\").alias(\"total_quantity_sold\"))\r\n",
+					"display(csv_sales_by_region.limit(5))\r\n",
+					"display(csv_quantity_by_product.limit(5))"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
